@@ -1,12 +1,31 @@
 package org.example.temperature;
+import com.avocent.mtp.commons.json.JsonUtil;
+import com.avocent.taf.plugin.engineadapter.rdua.model.HourData;
+import com.avocent.taf.plugin.engineadapter.rdua.service.AlarmService;
+import com.fasterxml.jackson.databind.JsonNode;
+import com.fasterxml.jackson.databind.node.ObjectNode;
+import org.joda.time.DateTime;
+import org.joda.time.DateTimeZone;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+
+import java.math.BigDecimal;
+import java.util.ArrayList;
+import java.util.List;
+
+import static com.avocent.mtp.model.EventProperties.TIMESTAMP;
+import static com.avocent.taf.plugin.engineadapter.rdua.constants.ConfigurationInstanceProperties.*;
 
 public class HourMaxMinValue {
+    private static final Logger LOGGER = LoggerFactory.getLogger(HourMaxMinValue.class);
+
     private float maxValue;
     private long maxTimestamp;
     private float minValue;
     private long minTimestamp;
-    private float total;
+    private BigDecimal total;
     private long count;
+    private List<HourData> hourDataList = new ArrayList<>();
 
     public float getMaxValue() {
         return maxValue;
@@ -22,7 +41,8 @@ public class HourMaxMinValue {
         this.minValue = minValue;
         this.minTimestamp = minTimestamp;
         this.count = 1;
-        this.total = minValue;
+        this.total = new BigDecimal(minValue);
+        hourDataList.add(new HourData(convertToUtcString(minTimestamp),count,total,minValue,total.floatValue()/count));
     }
 
     public HourMaxMinValue(long initDateTime, float initValue) {
@@ -43,24 +63,30 @@ public class HourMaxMinValue {
         }
     }
 
-    private void updateTotalValue(float value) {
-        this.total = this.total + value;
+    private void updateTotalValue(long timestamp , float value) {
+        this.total = this.total.add(new BigDecimal(value));
         this.count++;
+        hourDataList.add(new HourData(convertToUtcString(timestamp),count,total,value,total.floatValue()/count));
     }
 
     public synchronized void updateTagData(long timestamp, float value) {
         this.setMaxValueIfNeed(timestamp, value);
         this.setMinValueIfNeed(timestamp, value);
-        this.updateTotalValue(value);
+        this.updateTotalValue(timestamp,value);
     }
 
-    public static void main(String[] args) {
-        // 1 , 3 , 5
-        int timestamp = 666;
-        HourMaxMinValue hourMaxMinValue = new HourMaxMinValue(timestamp, 1, timestamp, 1);
-        hourMaxMinValue.updateTagData(timestamp, 3);
-        hourMaxMinValue.updateTagData(timestamp, 5);
+    public JsonNode toJsonNode() {
+        ObjectNode node = JsonUtil.createObjectNode();
+        node.with(MAX).put(TIMESTAMP, convertToUtcString(maxTimestamp));
+        node.with(MAX).put(VALUE, maxValue);
+        node.with(MIN).put(TIMESTAMP, convertToUtcString(minTimestamp));
+        node.with(MIN).put(VALUE, minValue);
+        node.with(AVG).put(VALUE, this.total.floatValue()/this.count);
+        node.with(AVG).put(COUNT, String.valueOf(count));
+        return node;
+    }
 
-        System.out.println(hourMaxMinValue);
+    private String convertToUtcString(long timestamp) {
+        return new DateTime(timestamp, DateTimeZone.UTC).toString();
     }
 }

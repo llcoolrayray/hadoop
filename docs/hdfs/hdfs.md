@@ -322,3 +322,12 @@ HDFS 中定义了 4 种异构存储类型
 
 #### 块存储类型选择策略速度
 ![图片alt](../images/speed.PNG)
+
+#### 块存储类型选择策略相关命令
+* 列出所有存储策略：hdfs storagepolicies -listPolicies
+* 设置策略：hdfs storagepolicies -setStoragePolicy -path <path> -policy <policy>
+* 取消策略：hdfs storagepolicies -unsetStoragePolicy -path <path>
+* 获取当前目录策略：hdfs storagepolicies -getStoragePolicy -path <path>
+
+#### HDFS 内存存储策略-LAZY PERSIST 
+将数据写入到由 dataNode 管理的堆外内存，并异步的刷新到磁盘中
