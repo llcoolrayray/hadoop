@@ -253,7 +253,7 @@ OLTP（on-line transaction processing）翻译为联机事务处理， OLAP（On
 * 最大的区别是。它不支持块级别压缩（多行数据一起压缩），因此在进行压缩时会带来较高的读取成本
 * 解析开销一般比二进制格式高，尤其是 XML，JSON，他们的解析开销比 Text file 还要打
 * 易读性好
-
+ 
 2. Sequence File
 * Sequence File，每条数据记录都是以 key，value 键值对进行序列化存储（二进制格式）
 * 序列化文件与文本文件相比更紧凑，支持 record 级（一条数据压缩），block 块级压缩。压缩的同时支持文件切分
