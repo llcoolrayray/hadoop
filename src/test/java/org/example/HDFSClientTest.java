@@ -26,7 +26,7 @@ public class HDFSClientTest {
 
         configuration = new Configuration();
         //设置操作的文件系统是 HDFS，并指定 HDFS 的操作地址
-        configuration.set("fs.defaultFS", "hdfs://node1.jiexi:8020");
+        configuration.set("fs.defaultFS", "hdfs://10.169.82.75:8020");
         fileSystem = FileSystem.get(configuration);
     }
 
@@ -54,13 +54,26 @@ public class HDFSClientTest {
     }
 
     /**
+     * 删除目录
+     * @throws IOException
+     */
+    @Test
+    public void deleteMkdir() throws IOException {
+        Path path = new Path("/barney");
+        if (fileSystem.exists(path)) {
+            fileSystem.delete(path, true);
+        }
+    }
+
+
+    /**
      * 上传文件
      * @throws IOException
      */
     @Test
     public void upload() throws IOException {
-        Path src = new Path("C:\\lol.txt");
-        Path dst = new Path("/barney");
+        Path src = new Path("D:\\files\\配置邮件服务器.txt");
+        Path dst = new Path("/common");
         fileSystem.copyFromLocalFile(src, dst);
     }
 

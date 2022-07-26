@@ -209,12 +209,32 @@ node3.yangzhen
 scp -r hadoop-3.1.4 root@node2:/export/server/
 scp -r hadoop-3.1.4 root@node3:/export/server/
 ```
-##### step5 NameNode format（格式化 NameNode）
+
+##### step5 hadoop 和 java 环境变量配置
+1. 配置环境变量
+```
+JAVA_HOME=/export/server/jdk1.8.0_202
+PATH=$PATH:$JAVA_HOME/bin
+CLASSPATH=.:$JAVA_HOME/lib/dt.jar:$JAVA_HOME/lib/tools.jar
+export JAVA_HOME CLASSPATH PATH
+export HADOOP_HOME=/export/server/hadoop-3.3.1
+export PATH=$PATH:$HADOOP_HOME/bin:$HADOOP_HOME/sbin
+```
+
+2. 将配置好的文件发送到其它节点上
+`scp /etc/profile root@node2:/etc/`
+
+3. 重新加载环境变量
+`source /etc/profile`
+
+执行`hadoop`命令查看环境变量是否生效
+
+##### step6 NameNode format（格式化 NameNode）
 * 首次启动 HDFS 时，必须对其进行格式化操作
 `hdfs namenode -format`
 
 * 备注：format 只能进行一次，若多次操作除了会造成数据丢失外，还会导致 hdfs 集群主从角色互不识别
-通过删除所有机器的 hadoop.tem.dir 目录重新 format 可解决
+通过删除所有机器的 hadoop.tmp.dir 目录重新 format 可解决
 
 ## Hadoop 集群启停
 ##### 单进程启停
@@ -223,8 +243,8 @@ scp -r hadoop-3.1.4 root@node3:/export/server/
 `hdfs --daemon start namenode|datanode|secondarynamenode`
 `hdfs --daemon stop namenode|datanode|secondarynamenode`
 * YARN 集群
-`yarn --daemon start namenode|datanode|secondarynamenode`
-`yarn --daemon stop namenode|datanode|secondarynamenode`
+`yarn --daemon start resourcemanager|nodemanager`
+`yarn --daemon stop resourcemanager|nodemanager`
 
 ##### 集群一键启停
 前提：集群节点直接配置好 ssh 免密登录和 works 文件
@@ -238,3 +258,11 @@ scp -r hadoop-3.1.4 root@node3:/export/server/
 ## Hadoop Web UI 页面
 * HDFS 集群管理页面：http://namenode_host:9870
 * YARN 集群管理页面：http://resource_manager_host:8088
+
+## win 系统开发环境配置
+* 场景： 使用 java 代码操作 HDFS
+* 提示：找不到 winutils.exe，HADOOP_HOME 没有配置
+* 原因：
+  1. Hadoop 访问 windows 本地文件系统，要求 windows 上的本地库能够正常工作。
+  2. 其中，Hadoop 使用某些 windows API 来实现类似 posix 的文件访问权限
+  上述功能需要在 hadoop.dll 和 winutils.exe 来实现

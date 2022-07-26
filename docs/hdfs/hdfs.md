@@ -56,6 +56,10 @@ DataNode 是从节点，两种角色各司其职，共同协调完成分布式�
 ###### 数据块存储
 * 文件的各个 block 由 DataNode 存储。每一个 block 及其副本可以在多个 DataNode 中存储
 
+#### HDFS 常见工具
+BigData File Viewer 是一个跨平台（例如Windows，MAC，Linux等）的桌面应用程序，它用于查看常见的大数据二进制格式，例如Parquet，ORC，AVRO等。
+除此之外，它还支持本地文件系统、HDFS、AWS S3等等。
+
 ## HDFS Java 客户端
 
 ```java
@@ -86,7 +90,8 @@ public class HDFSClientTest {
         System.setProperty("HADOOP_USER_NAME", "root");
 
         configuration = new Configuration();
-        //设置操作的文件系统是 HDFS，并指定 HDFS 的操作地址
+        //设置操作的文件系统是 HDFS，并指定 HDFS 的操作地址。
+        //hdfs://node1.jiexi:8020 地址是在 core-site.xml 中的 fs.defaultFS 参数配置的
         configuration.set("fs.defaultFS", "hdfs://node1.jiexi:8020");
         fileSystem = FileSystem.get(configuration);
     }
@@ -251,7 +256,7 @@ OLTP（on-line transaction processing）翻译为联机事务处理， OLAP（On
 1. Text File
 * 文本格式是 Hadoop 最常见的数据格式，通常按行存储，以回车换行符区分不同行数据
 * 最大的区别是。它不支持块级别压缩（多行数据一起压缩），因此在进行压缩时会带来较高的读取成本
-* 解析开销一般比二进制格式高，尤其是 XML，JSON，他们的解析开销比 Text file 还要打
+* 解析开销一般比二进制格式高，尤其是 XML，JSON，他们的解析开销比 Text file 还要大
 * 易读性好
  
 2. Sequence File
@@ -284,27 +289,32 @@ OLTP（on-line transaction processing）翻译为联机事务处理， OLAP（On
 一个 Mapper 处理。行组中每一列保存在一个列块中，一个列块具有相同的数据类型，不同列块可以使用不同的压缩。
 Parquet 是页存储方式，每一个列块包含多少个页，一个页是最小的编码单位，同一列块的不同页可以使用不同的编码方式
 
+#### Hadoop 支持的压缩对比
+![图片alt](../images/zip.PNG)
+![图片alt](../images/unzip.PNG)
 
 ## HDFS 异构存储
-#### 异构数据存储类型
-* 冷，热，温，冻数据
-   根据数据的使用频率来对数据进行划分，新导入的数据一般会被经常使用标记为“热数据”，存储的数据每周访问几次标记为“温数据”，
-几个月或几周访问一次为“冷数据”，很少会被使用的数据为“冻数据”
-   Hadoop 允许将不是热数据或活跃数据的数据分配到比较便宜的存储上，用于归档或冷存储。可以设置存储策略将旧数据从昂贵且高性能的
-机器转移到低性能廉价的机器上
+#### 什么是异构存储
+根据数据的特性（冷，热，温）将不同的数据存储到不同的存储介质中。
 
-#### 异构存储
-根据数据的特性（冷，热，温）将不同的数据存储到不同的存储介质中
+#### 异构数据存储类型
+* 常见数据类别：冷，热，温，冻数据  
+   根据数据的使用频率来对数据进行划分，新导入的数据一般会被经常使用标记为“热数据”，存储的数据每周访问几次标记为“温数据”，
+几个月或几周访问一次为“冷数据”，很少会被使用的数据为“冻数据”。  
+   Hadoop 允许将不是热数据或活跃数据的数据分配到比较便宜的存储上，用于归档或冷存储。可以设置存储策略将旧数据从昂贵且高性能的
+机器转移到低性能廉价的机器上。
 
 #### 异构存储类型
 HDFS 中定义了 4 种异构存储类型
 * RAM_DISK（内存）
 * SSD（固态硬盘）
-* DISK（机械硬盘）
+* DISK（机械硬盘，默认使用）
 * ARCHIVE（高密度存储介质，存储历史数据）
 
 #### 如何让 HDFS 知道集群中的数据存储目录是哪种存储介质
-需要配置时主动声明，HDFS 没有检测能力
+* 需要配置时主动声明，HDFS 没有检测能力
+* 配置参数 dfs.datanode.data.dir = [SSD]file://grid/dn/ssd0
+  如果目录前面没有加上 [SSD] [DISK] [ARCHIVE] [RAM_DISK] 这 4 种类型中的任意一种，则默认为 DISK 类型
 
 #### 块存储类型选择策略
 块存储类型选择策略含义如下图，指的是对 HDFS 文件数据块副本使用哪些存储类型进行存储
@@ -313,10 +323,10 @@ HDFS 中定义了 4 种异构存储类型
 * HDFS（BlockStoragePolicySuite） 定义了 6 种块存储策略  
   HOT（默认策略）：用于存储和计算，所有副本存储在 DISK 中  
   COLD：适用于计算量有限的存储，不再使用的数据或需要归档的数据从热存储移动到冷存储，所有副本存储到 ARCHIVE 中  
-  WARM：部分冷数据和部分热数据，热时，默些副本存储在 DISK 中，其余副本存储在 ARCHIVE 中  
+  WARM：部分冷数据和部分热数据，某些副本存储在 DISK 中，其余副本存储在 ARCHIVE 中  
   ALL_SSD：所有副本存储在 SSD 中  
   ONE_SSD：数据块的其中一个副本存储在 SSD 中，其余副本存储在 DISK 中  
-  LAZY_PERSIST：数据块的其中一个副本存储在内存中，其余副本存储在 DISK 中  
+  LAZY_PERSIST：数据块的其中一个副本存储在内存中，其余副本存储在 DISK 中（首先将副本写入 RAM 中，然后将其余的延迟保存到 DISK 中）  
 
 * 前三种根据数据冷热区分，后三种根据磁盘性质区分
 
@@ -326,8 +336,83 @@ HDFS 中定义了 4 种异构存储类型
 #### 块存储类型选择策略相关命令
 * 列出所有存储策略：hdfs storagepolicies -listPolicies
 * 设置策略：hdfs storagepolicies -setStoragePolicy -path <path> -policy <policy>
-* 取消策略：hdfs storagepolicies -unsetStoragePolicy -path <path>
+* 取消策略：hdfs storagepolicies -unsetStoragePolicy -path <path>（执行取消策略命令后，当前目录会应用父级目录的存储策略）
 * 获取当前目录策略：hdfs storagepolicies -getStoragePolicy -path <path>
 
-#### HDFS 内存存储策略-LAZY PERSIST 
-将数据写入到由 dataNode 管理的堆外内存，并异步的刷新到磁盘中
+#### 冷热温分层存储策略设置流程
+###### step1 配置 hdfs-site.xml
+配置好不同的机器它们的 DISK 路径是什么？ARCHIVE 路径是什么？ARCHIVE 路径可以选择挂载一些空间大的硬盘。
+```xml
+<property>
+	<name>dfs.datanode.data.dir</name>
+	<value>[DISK]file://${hadoop.tmp.dir}/dfs/data,[ARCHIVE]file://${hadoop.tmp.dir}/dfs/data/archive</value>
+</property>
+```
+
+###### step2 复制 hdfs-site.xml 到集群中所有节点并重启 HDFS 集群
+集群中每个节点的 dfs.datanode.data.dir 配置可以相同也可以不同，主要根据机器自己的磁盘情况来定。
+
+###### step3 创建测试目录结构
+创建 hot，warm，cold 的目录。
+```
+hdfs dfs -mkdir -p /data/hdfs-test/data_phase/hot
+hdfs dfs -mkdir -p /data/hdfs-test/data_phase/warm
+hdfs dfs -mkdir -p /data/hdfs-test/data_phase/cold
+```
+
+###### step4 设置三个目录的存储策略
+```
+hdfs storagepolicies -setStoragePolicy -path /data/hdfs-test/data_phase/hot -policy HOT
+hdfs storagepolicies -setStoragePolicy -path /data/hdfs-test/data_phase/warm -policy WARM
+hdfs storagepolicies -setStoragePolicy -path /data/hdfs-test/data_phase/cold -policy COLD
+```
+
+###### step5 上传测试文件到对应的 hot/warm/cold 目录
+```
+hdfs dfs -put /etc/profile /data/hdfs-test/data_phase/hot
+hdfs dfs -put /etc/profile /data/hdfs-test/data_phase/warm
+hdfs dfs -put /etc/profile /data/hdfs-test/data_phase/cold
+```
+
+###### step6 查看不同存储策略文件的 block 位置
+```
+hdfs fsck /data/hdfs-test/data_phase/hot/profile -files -blocks -locations 
+hdfs fsck /data/hdfs-test/data_phase/cold/profile -files -blocks -locations 
+hdfs fsck /data/hdfs-test/data_phase/warm/profile -files -blocks -locations 
+```
+
+如下图所示，warm 目录下的 profile 文件有 3 个副本，2个使用 ARCHIVE 类型的磁盘存储，一个使用 DISK 类型的磁盘存储。
+![图片alt](../images/storage.PNG)
+
+#### HDFS 内存存储策略-LAZY PERSIST（懒持久化） 
+将数据写入到由 dataNode 管理的堆外内存，并异步的刷新到磁盘中 
+
+###### 执行流程
+1. 对目标文件设置 StoragePolicy 为 LAZY PERSIST 的内存存储策略
+2. 客户端进程向 NameNode 发起创建/写文件的请求
+3. 客户端请求到具体的 DataNode 后 DataNode 会把这些数据块写入到 RAM 内存中，同时启动异步线程服务将内存数据持久化写到磁盘上
+
+###### 设置 LAZY PERSIST（懒持久化） 
+1. 虚拟内存盘配置  
+> 将 tmpfs 挂载到目录 /mnt/db-tmpfs/，并且限制内存使用大小为 1GB。（tmpfs 是一种基于内存的文件系统）  
+> mount -t tmpfs -o size=1g tmpfs /mnt/db-tmpfs/
+
+2. 内存存储介质设置
+   将机器中已经配置好的虚拟内存配置到 dfs.datanode.data.dior 中，其次还要带上 RAM_DISK 标签
+```
+<property>
+	<name>dfs.datanode.data.dir</name>
+	<value>/grid/0,/grid/1,[RAM_DISK]/mnt/db-tmpfs/</value>
+</property>
+```
+
+3.优化参数
+> dfs.storage.policy.enabled  
+> 是否开启异构存储，默认为 true 开启
+
+> dfs.datanode.max.locked.memory  
+> datanode 中可使用内存中缓存的上限，默认为 0 即禁用内存中的缓存。值过小会导致内存中可存储的数据块变小，值过大时超过 Datanode 可使用的内存值，
+> 部分内存块会被直接移出内存。
+
+4.在指定目录上设置存储策略
+> hdfs storagepolicies -setStoragePolicy -path /mnt/db-tmpfs -policy LAZY_PERSIST 
