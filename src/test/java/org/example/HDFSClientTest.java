@@ -73,7 +73,7 @@ public class HDFSClientTest {
     @Test
     public void upload() throws IOException {
         Path src = new Path("D:\\files\\配置邮件服务器.txt");
-        Path dst = new Path("/common");
+        Path dst = new Path("/test/");
         fileSystem.copyFromLocalFile(src, dst);
     }
 
