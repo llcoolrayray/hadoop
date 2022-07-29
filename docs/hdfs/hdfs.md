@@ -27,6 +27,40 @@ HDFS（Hadoop Distributed File System），意为 Hadoop 分布式文件系统�
 * 频繁，任意修改数据
 * 低延迟处理
 
+#### HDFS 架构整体概述
+HDFS 是 Hadoop Distributed File System 的缩写，意为 Hadoop 分布式文件系统。HDFS 是 Hadoop 的核心组件之一，也是大数据
+生态圈最底层的分布式存储服务。
+![图片alt](../images/ecosphere.jpeg)
+
+#### HDFS 集群角色
+HDFS 遵循主从架构，其中 NameNode 是主节点，负责存储和管理文件的元数据信息，包括 NameSpace 目录结构，文件块位置信息等；
+DataNode 是从节点，负责存储和操作具体的 block。两种角色各司其职，共同协调完成分布式的文件存储。SecondaryNameNode 是 NameNode
+的辅助角色，帮助它进行元数据的合并。
+
+![图片alt](../images/namenode.PNG)
+
+###### 主角色：NameNode
+* NameNode 是 Hadoop 分布式文件系统的核心，架构中的主角色
+* NameNode 维护和管理文件系统元数据，包括 NameSpace，文件块位置信息，访问权限等
+* 基于此，NameNode 也成为了访问 HDFS 的唯一入口
+* NameNode 启动时需要各个 DataNode 向它汇报 block 的信息。
+* NameNode 所在的机器通常会配置有大量的内存
+
+NameNode 通过内存和磁盘文件两种方式管理元数据。其中磁盘上的元数据文件包括 Fsimage 内存元数据镜像文件（可以理解为某一时刻 NameSpace 的快照）
+和 edits log（journal） 编辑日志（用户所有的操作都会记录下来）。
+
+###### 从角色：DataNode
+DataNode 负责具体的数据块存储。DataNode 的数量决定了 HDFS 集群的存储能力
+* DataNode 启动时，它将自己发布到 NameNode 并汇报自己负责持有的块列表
+* DataNode 根据 NameNode 的命令，执行块的创建，复制，删除等操作
+* DataNode 会定时（dfs.heartbeat.interval 配置项配置，默认为 3 秒）向 NameNode 发送心跳，如果 NameNode 长时间没有收到 DataNode
+的心跳，NameNode 就会认为该 DataNode 失效
+* DataNode 会定时向 NameNode 汇报自己持有的数据块信息（dfs.blockreport.intervalMsec 配置项配置，默认为 6 小时）
+
+###### 主角色辅助角色：SecondaryNameNode
+当 NameNode 启动时，NameNode 会合并 Fsimage 和 edits log 文件以还原当前文件系统的 NameSpace。但是如果 edits log 过大不利于加载，
+SecondaryNameNode 就会辅助 NameNode 从 NameNode 下载 Fsimage 和 edits log 文件进行合并。
+
 #### HDFS 重要特性
 ###### 主从架构
 * HDFS 采用 master/slave 架构。一般一个 HDFS 集群有一个 NameNode 和一定数目的 DataNode 组成。NameNode 是主节点，
@@ -40,6 +74,11 @@ DataNode 是从节点，两种角色各司其职，共同协调完成分布式�
 * 文件的所有 block 都会有副本，每个文件的 block 大小（dfs.blocksize）和副本系数（dfs.replication）都是可配置的。
 副本系数可以在创建文件时指定，也可以之后通过命令改变。
 * 默认 dfs.replication 的值是 3，也就是会额外再复制 2 份，连同本身总共 3 份副本
+
+###### 默认 3 副本存储策略
+* 第一个副本优先存储在客户端本机，若客户端机器没有 DataNode 就随机存储
+* 第二个副本存储在第一个副本的不同 Rack 上的机器上
+* 第三个副本存储在与第二个副本相同 Rack 的不同机器上
 
 ###### namespace
 * HDFS 支持传统的层次型文件组织结构。用户可以创建目录，然后将文件保存在这些目录里，文件系統名字空间的层
@@ -55,6 +94,17 @@ DataNode 是从节点，两种角色各司其职，共同协调完成分布式�
 
 ###### 数据块存储
 * 文件的各个 block 由 DataNode 存储。每一个 block 及其副本可以在多个 DataNode 中存储
+
+###### Pipeline 管道
+HDFS 通过 Pipeline 的方式进行数据传输。如下图所示，客户端先将数据通过 Pipeline 传输到 ND1，然后 ND1 再将数据传输给 ND2，以此类推。这种方式
+能够充分利用每一个机器的带块，提高数据写入的吞吐量。
+
+![图片alt](../images/pipeline.PNG)
+
+###### ACK 应答响应
+在 HDFS Pipeline 传输数据过程中，数据的接受方会进行 ACK 校验，确保数据传输安全。
+
+![图片alt](../images/ack.PNG)
 
 #### HDFS 常见工具
 BigData File Viewer 是一个跨平台（例如Windows，MAC，Linux等）的桌面应用程序，它用于查看常见的大数据二进制格式，例如Parquet，ORC，AVRO等。
