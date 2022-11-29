@@ -3,4 +3,4 @@
 # Hadoop 学习笔记
 
 [Gitlab](https://gitlab.com/Wang.Rui.Barney/upgrade.git)
-[Get Started](cluster/overview.md)
+[Get Started](cluster.md)

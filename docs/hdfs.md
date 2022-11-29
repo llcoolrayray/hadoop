@@ -30,14 +30,14 @@ HDFS（Hadoop Distributed File System），意为 Hadoop 分布式文件系统�
 #### HDFS 架构整体概述
 HDFS 是 Hadoop Distributed File System 的缩写，意为 Hadoop 分布式文件系统。HDFS 是 Hadoop 的核心组件之一，也是大数据
 生态圈最底层的分布式存储服务。
-![图片alt](../images/ecosphere.jpeg)
+![图片alt](images/ecosphere.jpeg)
 
 #### HDFS 集群角色
 HDFS 遵循主从架构，其中 NameNode 是主节点，负责存储和管理文件的元数据信息，包括 NameSpace 目录结构，文件块位置信息等；
 DataNode 是从节点，负责存储和操作具体的 block。两种角色各司其职，共同协调完成分布式的文件存储。SecondaryNameNode 是 NameNode
 的辅助角色，帮助它进行元数据的合并。
 
-![图片alt](../images/namenode.PNG)
+![图片alt](images/namenode.PNG)
 
 ###### 主角色：NameNode
 * NameNode 是 Hadoop 分布式文件系统的核心，架构中的主角色
@@ -99,12 +99,12 @@ DataNode 是从节点，两种角色各司其职，共同协调完成分布式�
 HDFS 通过 Pipeline 的方式进行数据传输。如下图所示，客户端先将数据通过 Pipeline 传输到 ND1，然后 ND1 再将数据传输给 ND2，以此类推。这种方式
 能够充分利用每一个机器的带块，提高数据写入的吞吐量。
 
-![图片alt](../images/pipeline.PNG)
+![图片alt](images/pipeline.PNG)
 
 ###### ACK 应答响应
 在 HDFS Pipeline 传输数据过程中，数据的接受方会进行 ACK 校验，确保数据传输安全。
 
-![图片alt](../images/ack.PNG)
+![图片alt](images/ack.PNG)
 
 #### HDFS 常见工具
 BigData File Viewer 是一个跨平台（例如Windows，MAC，Linux等）的桌面应用程序，它用于查看常见的大数据二进制格式，例如Parquet，ORC，AVRO等。
@@ -289,7 +289,7 @@ public class HDFSClientTest {
 
 ## HDFS 文件存储格式
 #### 行式存储，列式存储
-![图片alt](../images/row-column.PNG)
+![图片alt](images/row-column.PNG)
 
 特点|行式存储|列式存储 
 --|:--:|--:
@@ -309,9 +309,10 @@ OLTP（on-line transaction processing）翻译为联机事务处理， OLAP（On
 * 解析开销一般比二进制格式高，尤其是 XML，JSON，他们的解析开销比 Text file 还要大
 * 易读性好
  
-2. Sequence File
+2. Sequence File（重点）
 * Sequence File，每条数据记录都是以 key，value 键值对进行序列化存储（二进制格式）
 * 序列化文件与文本文件相比更紧凑，支持 record 级（一条数据压缩），block 块级压缩。压缩的同时支持文件切分
+* 文件支持拆分和并行处理，适用于 MapReduce 程序
 * 通常把 Sequence File 作为中间数据存储格式。例如：将大量小文件合并放入到一个 Sequence File 中
 
 3. Avro File
@@ -340,8 +341,8 @@ OLTP（on-line transaction processing）翻译为联机事务处理， OLAP（On
 Parquet 是页存储方式，每一个列块包含多少个页，一个页是最小的编码单位，同一列块的不同页可以使用不同的编码方式
 
 #### Hadoop 支持的压缩对比
-![图片alt](../images/zip.PNG)
-![图片alt](../images/unzip.PNG)
+![图片alt](images/zip.PNG)
+![图片alt](images/unzip.PNG)
 
 ## HDFS 异构存储
 #### 什么是异构存储
@@ -368,7 +369,7 @@ HDFS 中定义了 4 种异构存储类型
 
 #### 块存储类型选择策略
 块存储类型选择策略含义如下图，指的是对 HDFS 文件数据块副本使用哪些存储类型进行存储
-![图片alt](../images/yigou.PNG)
+![图片alt](images/yigou.PNG)
 * 块存储指的是对 HDFS 文件数据块副本存储
 * HDFS（BlockStoragePolicySuite） 定义了 6 种块存储策略  
   HOT（默认策略）：用于存储和计算，所有副本存储在 DISK 中  
@@ -381,7 +382,7 @@ HDFS 中定义了 4 种异构存储类型
 * 前三种根据数据冷热区分，后三种根据磁盘性质区分
 
 #### 块存储类型选择策略速度
-![图片alt](../images/speed.PNG)
+![图片alt](images/speed.PNG)
 
 #### 块存储类型选择策略相关命令
 * 列出所有存储策略：hdfs storagepolicies -listPolicies
@@ -432,7 +433,7 @@ hdfs fsck /data/hdfs-test/data_phase/warm/profile -files -blocks -locations
 ```
 
 如下图所示，warm 目录下的 profile 文件有 3 个副本，2个使用 ARCHIVE 类型的磁盘存储，一个使用 DISK 类型的磁盘存储。
-![图片alt](../images/storage.PNG)
+![图片alt](images/storage.PNG)
 
 #### HDFS 内存存储策略-LAZY PERSIST（懒持久化） 
 将数据写入到由 dataNode 管理的堆外内存，并异步的刷新到磁盘中 

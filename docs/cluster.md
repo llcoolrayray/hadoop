@@ -4,7 +4,7 @@
 Hadoop 集群包含 HDFS（Name Node，Secondary Name Node，Data Node） 集群和 Yarn 集群（Resource Manager，Node Manager）。
 下图显示的是包含 3 个节点的 Hadoop 集群。
 
-![图片alt](../images/HDFS%20集群.PNG)
+![图片alt](images/HDFS 集群.PNG)
 
 #### Hadoop 部署模式
 Hadoop 部署模式包含下列 4 种：
@@ -197,7 +197,7 @@ export YARN_NODEMANAGER_USER="root"
 </configuration>
 ```
 
-* 编辑 works（hadoop/etc/hadoop/）  
+* 编辑 workers（hadoop/etc/hadoop/）  
 ```shell script
 node1.jiexi
 node2.zhoupeng
@@ -247,7 +247,7 @@ export PATH=$PATH:$HADOOP_HOME/bin:$HADOOP_HOME/sbin
 `yarn --daemon stop resourcemanager|nodemanager`
 
 ##### 集群一键启停
-前提：集群节点直接配置好 ssh 免密登录和 works 文件
+前提：集群节点直接配置好 ssh 免密登录和 workers 文件
 * HDFS 集群：`start-dfs.sh`，`stop-dfs.sh`
 * YARN 集群：`start-yarn.sh`，`stop-yarn.sh`
 * Hadoop 集群：`start-all.sh`，`stop-all.sh`
