@@ -10,6 +10,7 @@ import org.apache.hadoop.mrunit.mapreduce.ReduceDriver;
 import org.example.temperature.MaxTemperatureMapper;
 import org.example.temperature.MaxTemperatureReducer;
 import org.junit.Before;
+import org.junit.Ignore;
 import org.junit.Test;
 
 import java.io.IOException;
@@ -20,6 +21,7 @@ import java.util.List;
  * @author w97766
  * @date 2021/11/29
  */
+@Ignore
 public class MapperReducerTest {
     Configuration conf = new Configuration();
     MapDriver<LongWritable, Text, Text, IntWritable> mapDriver;

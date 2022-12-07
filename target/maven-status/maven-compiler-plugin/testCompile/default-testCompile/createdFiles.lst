@@ -1,0 +1,4 @@
+org\example\MapperReducerTest.class
+org\example\sequenceFile\SequenceFileRead.class
+org\example\HDFSClientTest.class
+org\example\sequenceFile\SequenceFileWrite.class

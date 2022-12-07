@@ -3,9 +3,9 @@
 #### Hadoop 集群简介
 Hadoop 集群包含 HDFS（Name Node，Secondary Name Node，Data Node） 集群和 Yarn 集群（Resource Manager，Node Manager）。
 下图显示的是包含 3 个节点的 Hadoop 集群。
-
-![图片alt](images/HDFS 集群.PNG)
-
+  
+![图片alt](images/HDFS-cluster.PNG)
+  
 #### Hadoop 部署模式
 Hadoop 部署模式包含下列 4 种：
 * 单机模式：1 个机器运行 1 个 java 进程，所有角色在一个进程种运行。主要用于调试
@@ -37,7 +37,7 @@ Hadoop 部署模式包含下列 4 种：
 
 ##### step2 服务器基础环境准备
 * 设置主机名  
-`vim etc/hostname`  
+`/vim etc/hostname`  
 
 ```shell script  
 node1.jiexi
@@ -47,7 +47,7 @@ node1.jiexi
 `hostname`  
 
 * 配置 host 映射关系  
-`vim etc/hosts`  
+`vim /etc/hosts`  
 
 ```shell script  
 127.0.0.1   localhost localhost.localdomain localhost4 localhost4.localdomain4

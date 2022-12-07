@@ -1,3 +1,15 @@
+org\example\WordCount\WordCountClient.class
+org\example\WordCount\WordCountReducer.class
+org\example\covid\CovidMapper.class
 org\example\temperature\MaxTemperatureMapper.class
 org\example\temperature\MaxTemperature.class
+org\example\covid\CovidGroupComparator.class
+org\example\covid\CovidReducer.class
+org\example\pojo\CovidBean.class
+org\example\pojo\Student.class
+org\example\covid\CovidClient.class
+org\example\pojo\Covid.class
+org\example\covid\ProvincePartitioner.class
+org\example\WordCount\WordCountMapper.class
+org\example\temperature\Config.class
 org\example\temperature\MaxTemperatureReducer.class

@@ -6,14 +6,18 @@ import org.apache.hadoop.fs.Path;
 import org.apache.log4j.Logger;
 import org.junit.After;
 import org.junit.Before;
+import org.junit.Ignore;
 import org.junit.Test;
 
 import java.io.IOException;
+import java.text.SimpleDateFormat;
+import java.util.Date;
 
 /**
  * @author w97766
  * @date 2021/12/6
  */
+@Ignore
 public class HDFSClientTest {
     private static Configuration configuration;
     private static FileSystem fileSystem;
@@ -87,5 +91,11 @@ public class HDFSClientTest {
         Path dst = new Path("C:\\lol.txt");
         fileSystem.copyToLocalFile(src, dst);
         logger.info("test");
+    }
+
+    @Test
+    public void test() throws IOException {
+        SimpleDateFormat format=new SimpleDateFormat("yyyy-MM-dd HH:mm:ss");
+        System.out.println(format.format(new Date()));
     }
 }

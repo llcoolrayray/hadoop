@@ -3,4 +3,5 @@
 * [HDFS 管理与运维](operation-maintenance.md)    
 * [HDFS 架构原理](architecture.md)    
 * [HDFS 数据安全与隐私保护](safety.md)    
-* [MapReduce](map-reduce.md)    
+* [MapReduce 基础](map-reduce.md)    
+* [MapReduce 特性](map-reduce-feature.md)    
